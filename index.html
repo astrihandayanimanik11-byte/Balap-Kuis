@@ -14,7 +14,77 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       padding: 20px 10px;
+    }
+
+    /* Screen Halaman Depan (Lobby) */
+    .lobby-screen {
+      background: rgba(30, 41, 59, 0.9);
+      border: 2px solid #00f2fe;
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
+      width: 100%;
+      max-width: 600px;
+      padding: 40px 25px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+
+    .lobby-title {
+      font-size: 2.5rem;
+      color: #00f2fe;
+      text-shadow: 0 0 15px rgba(0, 242, 254, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+    }
+
+    .lobby-subtitle {
+      font-size: 1.1rem;
+      color: #cbd5e1;
+      margin-bottom: 30px;
+    }
+
+    .players-badge {
+      display: inline-block;
+      background: rgba(0, 242, 254, 0.15);
+      border: 1px solid #00f2fe;
+      color: #00f2fe;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+
+    .btn-play {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      border: none;
+      padding: 16px 40px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0, 114, 255, 0.5);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-play:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 12px 30px rgba(0, 114, 255, 0.7);
+    }
+
+    /* Screen Game Balapan */
+    .game-screen {
+      display: none;
+      width: 100%;
+      max-width: 850px;
+      flex-direction: column;
+      align-items: center;
     }
 
     h1 {
@@ -24,6 +94,7 @@
       text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
       text-transform: uppercase;
       letter-spacing: 2px;
+      text-align: center;
     }
 
     #status-text {
@@ -31,6 +102,7 @@
       color: #4facfe;
       margin-bottom: 15px;
       font-weight: 600;
+      text-align: center;
     }
 
     /* Track Balapan Neon */
@@ -41,7 +113,6 @@
       border-radius: 12px;
       padding: 15px;
       width: 100%;
-      max-width: 850px;
       position: relative;
       margin-bottom: 20px;
     }
@@ -90,7 +161,6 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       width: 100%;
-      max-width: 850px;
       padding: 25px;
       border-radius: 16px;
       backdrop-filter: blur(10px);
@@ -106,6 +176,7 @@
       justify-content: center;
       color: #ffffff;
       line-height: 1.4;
+      text-align: center;
     }
 
     .options {
@@ -143,48 +214,62 @@
       font-size: 0.9rem;
       color: #94a3b8;
       font-weight: 600;
+      text-align: center;
     }
 
     @media (max-width: 600px) {
       .options { grid-template-columns: 1fr; }
-      h1 { font-size: 1.6rem; }
+      h1, .lobby-title { font-size: 1.8rem; }
+      .btn-play { font-size: 1.1rem; padding: 14px 30px; }
     }
   </style>
 </head>
 <body>
 
-  <h1>🏁 BALAP KUIS TRIVIA 🏎️</h1>
-  <p id="status-text">Memuat Soal dari Google Sheet...</p>
-
-  <!-- Track Balap 6 Pemain -->
-  <div class="track-container">
-    <div class="finish-line"></div>
-    <div class="lane"><span class="lane-label">P1</span><div class="car" id="car-0">🏎️ (Kamu)</div></div>
-    <div class="lane"><span class="lane-label">P2</span><div class="car" id="car-1">🚗 Bot 1</div></div>
-    <div class="lane"><span class="lane-label">P3</span><div class="car" id="car-2">🚙 Bot 2</div></div>
-    <div class="lane"><span class="lane-label">P4</span><div class="car" id="car-3">🏎️ Bot 3</div></div>
-    <div class="lane"><span class="lane-label">P5</span><div class="car" id="car-4">🛻 Bot 4</div></div>
-    <div class="lane"><span class="lane-label">P6</span><div class="car" id="car-5">🏎️ Bot 5</div></div>
+  <!-- HALAMAN DEPAN (LOBBY) -->
+  <div class="lobby-screen" id="lobby-screen">
+    <h1 class="lobby-title">🏎️ BALAP KUIS TRIVIA</h1>
+    <p class="lobby-subtitle">Uji pengetahuanmu dan jadilah pemenang dalam balapan kuis seru!</p>
+    <div class="players-badge">👥 Jumlah Pemain: 6 Player</div>
+    <br>
+    <button class="btn-play" onclick="startGame()">AYO BERMAIN</button>
   </div>
 
-  <!-- Box Kuis -->
-  <div class="quiz-box">
-    <div class="question" id="question-text">Menyiapkan balapan...</div>
-    <div class="options" id="options-container">
-      <button class="btn-opt" onclick="checkAnswer(0)">A. Pilihan 1</button>
-      <button class="btn-opt" onclick="checkAnswer(1)">B. Pilihan 2</button>
-      <button class="btn-opt" onclick="checkAnswer(2)">C. Pilihan 3</button>
-      <button class="btn-opt" onclick="checkAnswer(3)">D. Pilihan 4</button>
+  <!-- HALAMAN GAME BALAPAN -->
+  <div class="game-screen" id="game-screen">
+    <h1>🏁 BALAP KUIS TRIVIA 🏎️</h1>
+    <p id="status-text">Memuat Soal dari Google Sheet...</p>
+
+    <!-- Track Balap 6 Pemain -->
+    <div class="track-container">
+      <div class="finish-line"></div>
+      <div class="lane"><span class="lane-label">P1</span><div class="car" id="car-0">🏎️ Player 1 (Kamu)</div></div>
+      <div class="lane"><span class="lane-label">P2</span><div class="car" id="car-1">🚗 Player 2</div></div>
+      <div class="lane"><span class="lane-label">P3</span><div class="car" id="car-2">🚙 Player 3</div></div>
+      <div class="lane"><span class="lane-label">P4</span><div class="car" id="car-3">🏎️ Player 4</div></div>
+      <div class="lane"><span class="lane-label">P5</span><div class="car" id="car-4">🛻 Player 5</div></div>
+      <div class="lane"><span class="lane-label">P6</span><div class="car" id="car-5">🏎️ Player 6</div></div>
     </div>
-  </div>
 
-  <div class="info-bar" id="progress-info">Soal Terjawab: 0 / 0</div>
+    <!-- Box Kuis -->
+    <div class="quiz-box">
+      <div class="question" id="question-text">Menyiapkan balapan...</div>
+      <div class="options" id="options-container">
+        <button class="btn-opt" onclick="checkAnswer(0)">A. Pilihan 1</button>
+        <button class="btn-opt" onclick="checkAnswer(1)">B. Pilihan 2</button>
+        <button class="btn-opt" onclick="checkAnswer(2)">C. Pilihan 3</button>
+        <button class="btn-opt" onclick="checkAnswer(3)">D. Pilihan 4</button>
+      </div>
+    </div>
+
+    <div class="info-bar" id="progress-info">Soal Terjawab: 0 / 0</div>
+  </div>
 
   <script>
     let questions = [];
     let currentQuestionIndex = 0;
     
-    // Posisi untuk 6 pemain [Player1, Bot1, Bot2, Bot3, Bot4, Bot5]
+    // Posisi 6 pemain [Player 1, Player 2, Player 3, Player 4, Player 5, Player 6]
     let playerPositions = [0, 0, 0, 0, 0, 0];
     let moveStep = 0;
 
@@ -192,7 +277,12 @@
     const sheetId = urlParams.get('id') || '1BssaGcougen7R_fsOQeGC7RDhOhbzUDcBrdymigVoME';
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 
-    // Parser CSV Kompatibel Tanda Koma & Petik
+    function startGame() {
+      document.getElementById('lobby-screen').style.display = 'none';
+      document.getElementById('game-screen').style.display = 'flex';
+      loadQuestions();
+    }
+
     function parseCSV(text) {
       let p = '', c = '', r = [];
       let q = false;
@@ -240,9 +330,7 @@
 
         if (questions.length === 0) throw new Error("Kosong");
 
-        // Hitung jarak pergerakan berdasarkan jumlah soal yang berhasil diambil
         moveStep = 80 / questions.length;
-
         document.getElementById('status-text').innerText = `⚡ ${questions.length} Soal Berhasil Dimuat! Ready, Set, GO! 🏁`;
         displayQuestion();
 
@@ -290,27 +378,25 @@
 
       document.querySelectorAll('.btn-opt').forEach(btn => btn.disabled = true);
 
-      // 1. Pergerakan Player (P1)
+      // 1. Pergerakan Player 1 (Kamu)
       if (selectedKey === currentQ.jawaban) {
         playerPositions[0] += moveStep;
       }
 
-      // 2. Simulasi Pergerakan 5 Bot Lawan secara acak
+      // 2. Pergerakan Player 2 s/d Player 6 secara dinamis
       for (let i = 1; i <= 5; i++) {
-        // Peluang bot menjawab benar (65%)
         if (Math.random() < 0.65) {
-          playerPositions[i] += moveStep * (0.8 + Math.random() * 0.4); // Variasi kecepatan bot
+          playerPositions[i] += moveStep * (0.8 + Math.random() * 0.4);
         }
       }
 
-      // Update Tampilan Posisi Mobil di Track
+      // Update Tampilan Mobil di Track
       for (let i = 0; i < 6; i++) {
         document.getElementById(`car-${i}`).style.left = `${playerPositions[i]}%`;
       }
 
       currentQuestionIndex++;
 
-      // Cek Kondisi Menang / Selesai
       const hasWinner = playerPositions.some(pos => pos >= 80);
       if (hasWinner || currentQuestionIndex >= questions.length) {
         setTimeout(finishGame, 700);
@@ -320,14 +406,13 @@
     }
 
     function finishGame() {
-      // Hitung Peringkat Akhir
       let leaderboard = playerPositions.map((pos, idx) => {
-        return { name: idx === 0 ? "Kamu (Player 1)" : `Bot ${idx}`, score: pos };
+        return { name: `Player ${idx + 1}${idx === 0 ? " (Kamu)" : ""}`, score: pos };
       });
       
       leaderboard.sort((a, b) => b.score - a.score);
 
-      const userRank = leaderboard.findIndex(p => p.name === "Kamu (Player 1)") + 1;
+      const userRank = leaderboard.findIndex(p => p.name.includes("Kamu")) + 1;
       let statusMsg = userRank === 1 ? "🏆 SELAMAT! KAMU MENANG BALAPAN! 🎉" : `🏁 Balapan Selesai! Kamu Finish di Posisi #${userRank}`;
 
       document.getElementById('question-text').innerHTML = `<span style="color: #00f2fe">${statusMsg}</span>`;
@@ -335,8 +420,6 @@
         <button class="btn-opt" style="grid-column: span 2; text-align: center; font-size: 1.1rem;" onclick="location.reload()">🔄 Main Lagi</button>
       `;
     }
-
-    loadQuestions();
   </script>
 </body>
 </html>
