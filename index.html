@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Balap Kuis Trivia Dynamic</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #fff; text-align: center; padding: 20px; }
+    h1 { margin-bottom: 10px; color: #f1c40f; }
+
+    /* Track Balapan */
+    .track-container { background: #16213e; border: 3px solid #0f3460; border-radius: 10px; padding: 20px; margin: 20px auto; max-width: 800px; position: relative; }
+    .lane { height: 50px; border-bottom: 2px dashed #0f3460; position: relative; display: flex; align-items: center; }
+    .lane:last-child { border-bottom: none; }
+    .car { font-size: 28px; position: absolute; left: 0; transition: left 0.5s ease-in-out; }
+    .finish-line { position: absolute; right: 20px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); }
+
+    /* Area Kuis */
+    .quiz-box { background: #0f3460; max-width: 800px; margin: 0 auto; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    .question { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-opt { background: #e94560; color: white; border: none; padding: 12px; font-size: 1rem; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
+    .btn-opt:hover { background: #ff6b81; }
+    .btn-opt:disabled { background: #555; cursor: not-allowed; }
+
+    /* Status Info */
+    .info-bar { margin-top: 15px; font-size: 0.9rem; color: #a8a8b3; }
+  </style>
+</head>
+<body>
+
+  <h1>🏎️ Balap Kuis Trivia</h1>
+  <p id="status-text">Memuat Soal...</p>
+
+  <!-- Track Balap -->
+  <div class="track-container">
+    <div class="finish-line"></div>
+    <div class="lane"><div class="car" id="car-1">🏎️ Player 1</div></div>
+    <div class="lane"><div class="car" id="car-2">🚗 Player 2 (Bot)</div></div>
+  </div>
+
+  <!-- Box Kuis -->
+  <div class="quiz-box">
+    <div class="question" id="question-text">Soal akan muncul di sini</div>
+    <div class="options" id="options-container">
+      <button class="btn-opt" onclick="checkAnswer(0)">Pilihan A</button>
+      <button class="btn-opt" onclick="checkAnswer(1)">Pilihan B</button>
+      <button class="btn-opt" onclick="checkAnswer(2)">Pilihan C</button>
+      <button class="btn-opt" onclick="checkAnswer(3)">Pilihan D</button>
+    </div>
+  </div>
+
+  <div class="info-bar" id="progress-info">Soal Terjawab: 0 / 0</div>
+
+  <script>
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let playerPos = 0;
+    let botPos = 0;
+    let moveStep = 0;
+
+    // Ambil Parameter Google Sheet ID dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sheetId = urlParams.get('id') || '1BssaGcougen7R_fsOQeGC7RDhOhbzUDcBrdymigVoME'; // ID Default
+
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+
+    async function loadQuestions() {
+      try {
+        const response = await fetch(csvUrl);
+        const data = await response.text();
+        
+        const rows = data.split('\n').map(row => row.split(','));
+        
+        questions = rows.slice(1).map(r => {
+          if (r.length >= 6) {
+            return {
+              pertanyaan: r[0].replace(/"/g, '').trim(),
+              a: r[1].replace(/"/g, '').trim(),
+              b: r[2].replace(/"/g, '').trim(),
+              c: r[3].replace(/"/g, '').trim(),
+              d: r[4].replace(/"/g, '').trim(),
+              jawaban: r[5].replace(/"/g, '').trim().toUpperCase()
+            };
+          }
+        }).filter(q => q !== undefined);
+
+        if (questions.length === 0) {
+          throw new Error("Tidak ada soal yang terbaca!");
+        }
+
+        // Hitung jarak gerak mobil secara dinamis berdasarkan JUMLAH SOAL
+        moveStep = 80 / questions.length;
+
+        document.getElementById('status-text').innerText = `Berhasil memuat ${questions.length} Soal!`;
+        displayQuestion();
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('status-text').innerText = "Gagal memuat soal. Menggunakan Soal Cadangan.";
+        useFallbackQuestions();
+      }
+    }
+
+    function useFallbackQuestions() {
+      questions = [
+        { pertanyaan: "2 + 2 = ?", a: "3", b: "4", c: "5", d: "6", jawaban: "B" },
+        { pertanyaan: "Ibu kota Indonesia?", a: "Bandung", b: "Medan", c: "Jakarta/IKN", d: "Surabaya", jawaban: "C" },
+        { pertanyaan: "Warna bendera Indonesia?", a: "Merah Putih", b: "Putih Merah", c: "Merah Kuning", d: "Biru Putih", jawaban: "A" }
+      ];
+      moveStep = 80 / questions.length;
+      displayQuestion();
+    }
+
+    function displayQuestion() {
+      if (currentQuestionIndex >= questions.length) {
+        finishGame();
+        return;
+      }
+
+      const q = questions[currentQuestionIndex];
+      document.getElementById('question-text').innerText = `[Soal ${currentQuestionIndex + 1}] ${q.pertanyaan}`;
+      
+      const buttons = document.querySelectorAll('.btn-opt');
+      const opts = [q.a, q.b, q.c, q.d];
+      const keys = ["A", "B", "C", "D"];
+
+      buttons.forEach((btn, idx) => {
+        btn.innerText = `${keys[idx]}. ${opts[idx]}`;
+        btn.disabled = false;
+      });
+
+      document.getElementById('progress-info').innerText = `Soal Terjawab: ${currentQuestionIndex} / ${questions.length}`;
+    }
+
+    function checkAnswer(selectedIdx) {
+      const keys = ["A", "B", "C", "D"];
+      const selectedKey = keys[selectedIdx];
+      const currentQ = questions[currentQuestionIndex];
+
+      document.querySelectorAll('.btn-opt').forEach(btn => btn.disabled = true);
+
+      if (selectedKey === currentQ.jawaban) {
+        playerPos += moveStep;
+        document.getElementById('car-1').style.left = `${playerPos}%`;
+      } else {
+        botPos += moveStep * 0.5;
+      }
+
+      if (Math.random() > 0.3) {
+        botPos += moveStep;
+        document.getElementById('car-2').style.left = `${botPos}%`;
+      }
+
+      currentQuestionIndex++;
+
+      if (playerPos >= 80 || botPos >= 80 || currentQuestionIndex >= questions.length) {
+        setTimeout(finishGame, 600);
+      } else {
+        setTimeout(displayQuestion, 600);
+      }
+    }
+
+    function finishGame() {
+      let winner = "Draw!";
+      if (playerPos > botPos) {
+        winner = "🎉 Selamat! Kamu Menang Balapan!";
+      } else if (botPos > playerPos) {
+        winner = "🏎️ Bot Menang! Coba Lagi!";
+      } else {
+        winner = "🏁 Balapan Seri!";
+      }
+
+      document.getElementById('question-text').innerText = winner;
+      document.getElementById('options-container').innerHTML = `
+        <button class="btn-opt" style="grid-column: span 2" onclick="location.reload()">Main Lagi</button>
+      `;
+    }
+
+    loadQuestions();
+  </script>
+</body>
+</html>
