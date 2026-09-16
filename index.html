@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Balap Kuis Trivia - Lilac Edition</title>
+  <title>Balap Kuis Trivia - Dynamic Edition</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -25,25 +25,25 @@
       box-shadow: 0 0 30px rgba(216, 180, 254, 0.4);
       width: 100%;
       max-width: 600px;
-      padding: 40px 25px;
+      padding: 35px 25px;
       border-radius: 24px;
       backdrop-filter: blur(12px);
       text-align: center;
     }
 
     .lobby-title {
-      font-size: 2.5rem;
+      font-size: 2.3rem;
       color: #e9d5ff;
       text-shadow: 0 0 15px rgba(233, 213, 255, 0.7);
       text-transform: uppercase;
       letter-spacing: 2px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
 
     .lobby-subtitle {
-      font-size: 1.1rem;
+      font-size: 1rem;
       color: #f3e8ff;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
 
     .players-badge {
@@ -54,8 +54,39 @@
       padding: 8px 18px;
       border-radius: 20px;
       font-weight: 600;
-      margin-bottom: 30px;
-      font-size: 0.95rem;
+      margin-bottom: 25px;
+      font-size: 0.9rem;
+    }
+
+    /* Input Link Google Sheets */
+    .sheet-input-group {
+      margin-bottom: 25px;
+      text-align: left;
+    }
+
+    .sheet-input-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: #d8b4fe;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .sheet-input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(216, 180, 254, 0.4);
+      background: rgba(30, 15, 45, 0.7);
+      color: #ffffff;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .sheet-input-group input:focus {
+      border-color: #c084fc;
+      box-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
     }
 
     .btn-play {
@@ -63,7 +94,7 @@
       color: white;
       border: none;
       padding: 16px 45px;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: bold;
       border-radius: 50px;
       cursor: pointer;
@@ -231,8 +262,13 @@
   <div class="lobby-screen" id="lobby-screen">
     <h1 class="lobby-title">🏎️ BALAP KUIS TRIVIA</h1>
     <p class="lobby-subtitle">Uji pengetahuanmu dan jadilah pemenang dalam balapan kuis seru!</p>
-    <div class="players-badge">👥 6 Player | Maksimal 100 Soal</div>
-    <br>
+    <div class="players-badge">👥 6 Player | Auto-Detect Soal</div>
+
+    <div class="sheet-input-group">
+      <label for="sheet-url">🔗 Link Google Spreadsheet / ID Sheet (Opsional):</label>
+      <input type="text" id="sheet-url" placeholder="Paste link Google Sheet di sini...">
+    </div>
+
     <button class="btn-play" onclick="startGame()">AYO BERMAIN</button>
   </div>
 
@@ -269,19 +305,29 @@
   <script>
     let questions = [];
     let currentQuestionIndex = 0;
-    
-    // Posisi 6 pemain [Player 1, Player 2, Player 3, Player 4, Player 5, Player 6]
     let playerPositions = [0, 0, 0, 0, 0, 0];
     let moveStep = 0;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const sheetId = urlParams.get('id') || '1BssaGcougen7R_fsOQeGC7RDhOhbzUDcBrdymigVoME';
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+    const defaultSheetId = '1BssaGcougen7R_fsOQeGC7RDhOhbzUDcBrdymigVoME';
+
+    // Fungsi mengekstrak ID dari URL Google Sheets yang di-paste
+    function extractSheetId(input) {
+      if (!input || input.trim() === '') return null;
+      const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      return match ? match[1] : input.trim();
+    }
 
     function startGame() {
+      const inputVal = document.getElementById('sheet-url').value;
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramId = urlParams.get('id');
+      
+      let finalSheetId = extractSheetId(inputVal) || paramId || defaultSheetId;
+
       document.getElementById('lobby-screen').style.display = 'none';
       document.getElementById('game-screen').style.display = 'flex';
-      loadQuestions();
+      
+      loadQuestions(finalSheetId);
     }
 
     function parseCSV(text) {
@@ -308,15 +354,17 @@
       return r;
     }
 
-    async function loadQuestions() {
+    async function loadQuestions(sheetId) {
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+
       try {
         const response = await fetch(csvUrl);
         const data = await response.text();
         const rows = parseCSV(data);
         
         questions = [];
-        // Membaca hingga maksimal 100 soal
-        for (let i = 1; i < rows.length && questions.length < 100; i++) {
+        // Membaca SEMUA baris soal dari Spreadsheet tanpa batasan
+        for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (r.length >= 6 && r[0].trim() !== '') {
             questions.push({
@@ -332,13 +380,13 @@
 
         if (questions.length === 0) throw new Error("Kosong");
 
-        // Menghitung pergerakan mobil berdasarkan jumlah total soal yang berhasil dimuat
+        // Perhitungan langkah mobil otomatis berdasarkan jumlah total soal yang terbaca
         moveStep = 80 / questions.length;
         document.getElementById('status-text').innerText = `⚡ ${questions.length} Soal Berhasil Dimuat! Ready, Set, GO! 🏁`;
         displayQuestion();
 
       } catch (err) {
-        document.getElementById('status-text').innerText = "⚠️ Gagal mengambil soal Sheet. Menggunakan Soal Cadangan.";
+        document.getElementById('status-text').innerText = "⚠️ Gagal mengambil soal Sheet. Pastikan link dipublikasikan atau akses dibuka untuk umum.";
         useFallbackQuestions();
       }
     }
@@ -426,4 +474,3 @@
   </script>
 </body>
 </html>
-```[cite: 1]
