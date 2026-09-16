@@ -198,17 +198,13 @@
     let playerPositions = [0, 0, 0, 0, 0, 0];
     let moveStep = 0;
 
-    // ID Spreadsheet bawaan jika tidak ada parameter id di URL
-    const defaultSheetId = '1BssaGcougen7R_fsOQeGC7RDhOhbzUDcBrdymigVoME';
-
-    // Mengekstrak ID dari URL GitHub (?id=...)
+    // Ambil ID / Link Spreadsheet murni dari parameter URL
     function getSheetIdFromURL() {
       const urlParams = new URLSearchParams(window.location.search);
       const param = urlParams.get('id') || urlParams.get('sheet');
       
-      if (!param) return defaultSheetId;
+      if (!param) return null;
 
-      // Ambil ID saja jika user memasukkan full URL Spreadsheet
       const match = param.match(/\/d\/([a-zA-Z0-9-_]+)/);
       return match ? match[1] : param.trim();
     }
@@ -239,6 +235,13 @@
 
     async function loadQuestions() {
       const sheetId = getSheetIdFromURL();
+
+      if (!sheetId) {
+        document.getElementById('status-text').innerText = "⚠️ Link Spreadsheet belum dimasukkan pada URL!";
+        document.getElementById('question-text').innerText = "Silakan tambahkan '?id=LINK_SPREADSHEET' di akhir link GitHub Pages kamu.";
+        return;
+      }
+
       const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 
       try {
@@ -249,7 +252,6 @@
         const rows = parseCSV(data);
         
         questions = [];
-        // Loop membaca SELURUH baris di Spreadsheet tanpa dibatasi
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (r.length >= 6 && r[0].trim() !== '') {
@@ -266,25 +268,14 @@
 
         if (questions.length === 0) throw new Error("Spreadsheet Kosong");
 
-        // Pembagian jarak mobil menyesuaikan jumlah soal otomatis
         moveStep = 80 / questions.length;
-        document.getElementById('status-text').innerText = `⚡ Berhasil Memuat ${questions.length} Soal! Selamat Bermain 🏁`;
+        document.getElementById('status-text').innerText = `⚡ Berhasil Memuat ${questions.length} Soal dari Spreadsheet!`;
         displayQuestion();
 
       } catch (err) {
-        document.getElementById('status-text').innerText = "⚠️ Gagal membaca Sheet. Pastikan link dipublikasikan ke publik (Anyone with the link).";
-        useFallbackQuestions();
+        document.getElementById('status-text').innerText = "⚠️ Gagal membaca Spreadsheet. Pastikan Spreadsheet disetting 'Siapa saja yang memiliki link dapat melihat'.";
+        document.getElementById('question-text').innerText = "Periksa kembali link/ID Spreadsheet pada URL.";
       }
-    }
-
-    function useFallbackQuestions() {
-      questions = [
-        { pertanyaan: "Berapa hasil dari 10 + 15?", a: "20", b: "25", c: "30", d: "35", jawaban: "B" },
-        { pertanyaan: "Ibu kota negara Indonesia?", a: "Surabaya", b: "Medan", c: "Jakarta / IKN", d: "Bandung", jawaban: "C" },
-        { pertanyaan: "Warna bendera negara Indonesia?", a: "Merah Putih", b: "Putih Merah", c: "Merah Kuning", d: "Biru Putih", jawaban: "A" }
-      ];
-      moveStep = 80 / questions.length;
-      displayQuestion();
     }
 
     function displayQuestion() {
