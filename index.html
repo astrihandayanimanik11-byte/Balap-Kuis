@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Balap Kuis Trivia - Dynamic Edition</title>
+  <title>Balap Kuis Trivia</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -18,102 +18,10 @@
       padding: 20px 10px;
     }
 
-    /* Screen Halaman Depan (Lobby) */
-    .lobby-screen {
-      background: rgba(45, 27, 61, 0.85);
-      border: 2px solid #d8b4fe;
-      box-shadow: 0 0 30px rgba(216, 180, 254, 0.4);
-      width: 100%;
-      max-width: 600px;
-      padding: 35px 25px;
-      border-radius: 24px;
-      backdrop-filter: blur(12px);
-      text-align: center;
-    }
-
-    .lobby-title {
-      font-size: 2.3rem;
-      color: #e9d5ff;
-      text-shadow: 0 0 15px rgba(233, 213, 255, 0.7);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-    }
-
-    .lobby-subtitle {
-      font-size: 1rem;
-      color: #f3e8ff;
-      margin-bottom: 20px;
-    }
-
-    .players-badge {
-      display: inline-block;
-      background: rgba(216, 180, 254, 0.2);
-      border: 1px solid #c084fc;
-      color: #f3e8ff;
-      padding: 8px 18px;
-      border-radius: 20px;
-      font-weight: 600;
-      margin-bottom: 25px;
-      font-size: 0.9rem;
-    }
-
-    /* Input Link Google Sheets */
-    .sheet-input-group {
-      margin-bottom: 25px;
-      text-align: left;
-    }
-
-    .sheet-input-group label {
-      display: block;
-      font-size: 0.85rem;
-      color: #d8b4fe;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-
-    .sheet-input-group input {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1px solid rgba(216, 180, 254, 0.4);
-      background: rgba(30, 15, 45, 0.7);
-      color: #ffffff;
-      font-size: 0.9rem;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-
-    .sheet-input-group input:focus {
-      border-color: #c084fc;
-      box-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
-    }
-
-    .btn-play {
-      background: linear-gradient(135deg, #c084fc, #9333ea);
-      color: white;
-      border: none;
-      padding: 16px 45px;
-      font-size: 1.3rem;
-      font-weight: bold;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 8px 25px rgba(147, 51, 234, 0.5);
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .btn-play:hover {
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 12px 30px rgba(192, 132, 252, 0.7);
-    }
-
-    /* Screen Game Balapan */
     .game-screen {
-      display: none;
       width: 100%;
       max-width: 850px;
+      display: flex;
       flex-direction: column;
       align-items: center;
     }
@@ -136,7 +44,7 @@
       text-align: center;
     }
 
-    /* Track Balapan Lilac */
+    /* Track Balap */
     .track-container {
       background: rgba(30, 15, 45, 0.9);
       border: 2px solid #c084fc;
@@ -186,7 +94,7 @@
       z-index: 1;
     }
 
-    /* Area Kuis Glassmorphism Lilac */
+    /* Box Kuis & Menu */
     .quiz-box {
       background: rgba(45, 27, 61, 0.9);
       border: 1px solid rgba(216, 180, 254, 0.3);
@@ -241,6 +149,37 @@
       cursor: not-allowed;
     }
 
+    /* Styling Menu Utama */
+    .start-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+      width: 100%;
+      padding: 10px 0;
+    }
+
+    .btn-play {
+      background: linear-gradient(135deg, #a855f7, #7e22ce);
+      color: #fff;
+      border: none;
+      padding: 18px 30px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      border-radius: 14px;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 5px 20px rgba(168, 85, 247, 0.4);
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .btn-play:hover {
+      transform: scale(1.02);
+      background: linear-gradient(135deg, #c084fc, #9333ea);
+    }
+
     .info-bar {
       margin-top: 15px;
       font-size: 0.9rem;
@@ -251,31 +190,15 @@
 
     @media (max-width: 600px) {
       .options { grid-template-columns: 1fr; }
-      h1, .lobby-title { font-size: 1.8rem; }
-      .btn-play { font-size: 1.1rem; padding: 14px 30px; }
+      h1 { font-size: 1.8rem; }
     }
   </style>
 </head>
 <body>
 
-  <!-- HALAMAN DEPAN (LOBBY) -->
-  <div class="lobby-screen" id="lobby-screen">
-    <h1 class="lobby-title">🏎️ BALAP KUIS TRIVIA</h1>
-    <p class="lobby-subtitle">Uji pengetahuanmu dan jadilah pemenang dalam balapan kuis seru!</p>
-    <div class="players-badge">👥 6 Player | Auto-Detect Soal</div>
-
-    <div class="sheet-input-group">
-      <label for="sheet-url">🔗 Link Google Spreadsheet / ID Sheet (Opsional):</label>
-      <input type="text" id="sheet-url" placeholder="Paste link Google Sheet di sini...">
-    </div>
-
-    <button class="btn-play" onclick="startGame()">AYO BERMAIN</button>
-  </div>
-
-  <!-- HALAMAN GAME BALAPAN -->
-  <div class="game-screen" id="game-screen">
+  <div class="game-screen">
     <h1>🏁 BALAP KUIS TRIVIA 🏎️</h1>
-    <p id="status-text">Memuat Soal dari Google Sheet...</p>
+    <p id="status-text">Tekan tombol di bawah untuk memulai arena balap!</p>
 
     <!-- Track Balap 6 Pemain -->
     <div class="track-container">
@@ -288,18 +211,16 @@
       <div class="lane"><span class="lane-label">P6</span><div class="car" id="car-5">🏎️ Player 6</div></div>
     </div>
 
-    <!-- Box Kuis -->
+    <!-- Box Kuis & Menu Utama -->
     <div class="quiz-box">
-      <div class="question" id="question-text">Menyiapkan balapan...</div>
-      <div class="options" id="options-container">
-        <button class="btn-opt" onclick="checkAnswer(0)">A. Pilihan 1</button>
-        <button class="btn-opt" onclick="checkAnswer(1)">B. Pilihan 2</button>
-        <button class="btn-opt" onclick="checkAnswer(2)">C. Pilihan 3</button>
-        <button class="btn-opt" onclick="checkAnswer(3)">D. Pilihan 4</button>
+      <div id="game-content">
+        <div class="start-menu">
+          <button class="btn-play" onclick="startRace()">🚀 AYO BERMAIN 🚀</button>
+        </div>
       </div>
     </div>
 
-    <div class="info-bar" id="progress-info">Soal Terjawab: 0 / 0</div>
+    <div class="info-bar" id="progress-info">Siap Bertanding!</div>
   </div>
 
   <script>
@@ -308,26 +229,15 @@
     let playerPositions = [0, 0, 0, 0, 0, 0];
     let moveStep = 0;
 
-    const defaultSheetId = '1BssaGcougen7R_fsOQeGC7RDhOhbzUDcBrdymigVoME';
-
-    // Fungsi mengekstrak ID dari URL Google Sheets yang di-paste
-    function extractSheetId(input) {
-      if (!input || input.trim() === '') return null;
-      const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      return match ? match[1] : input.trim();
-    }
-
-    function startGame() {
-      const inputVal = document.getElementById('sheet-url').value;
+    // Ekstrak ID Spreadsheet dari URL (?id=...)
+    function getSheetIdFromURL() {
       const urlParams = new URLSearchParams(window.location.search);
-      const paramId = urlParams.get('id');
+      const param = urlParams.get('id') || urlParams.get('sheet');
       
-      let finalSheetId = extractSheetId(inputVal) || paramId || defaultSheetId;
+      if (!param) return null;
 
-      document.getElementById('lobby-screen').style.display = 'none';
-      document.getElementById('game-screen').style.display = 'flex';
-      
-      loadQuestions(finalSheetId);
+      const match = param.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      return match ? match[1] : param.trim();
     }
 
     function parseCSV(text) {
@@ -354,16 +264,26 @@
       return r;
     }
 
-    async function loadQuestions(sheetId) {
+    async function startRace() {
+      const sheetId = getSheetIdFromURL();
+
+      if (!sheetId) {
+        alert("⚠️ Parameter ID Spreadsheet belum dimasukkan pada URL!\n\nGunakan format URL:\nhttps://username.github.io/repo/?id=LINK_SPREADSHEET");
+        return;
+      }
+
+      document.getElementById('status-text').innerText = "Memuat Soal dari Spreadsheet...";
+
       const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 
       try {
         const response = await fetch(csvUrl);
+        if (!response.ok) throw new Error("Gagal mengambil data");
+
         const data = await response.text();
         const rows = parseCSV(data);
         
         questions = [];
-        // Membaca SEMUA baris soal dari Spreadsheet tanpa batasan
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (r.length >= 6 && r[0].trim() !== '') {
@@ -378,27 +298,29 @@
           }
         }
 
-        if (questions.length === 0) throw new Error("Kosong");
+        if (questions.length === 0) throw new Error("Spreadsheet Kosong");
 
-        // Perhitungan langkah mobil otomatis berdasarkan jumlah total soal yang terbaca
         moveStep = 80 / questions.length;
-        document.getElementById('status-text').innerText = `⚡ ${questions.length} Soal Berhasil Dimuat! Ready, Set, GO! 🏁`;
+        document.getElementById('status-text').innerText = `⚡ Memuat ${questions.length} Soal! Selamat Balapan!`;
+        
+        setupQuizUI();
         displayQuestion();
 
       } catch (err) {
-        document.getElementById('status-text').innerText = "⚠️ Gagal mengambil soal Sheet. Pastikan link dipublikasikan atau akses dibuka untuk umum.";
-        useFallbackQuestions();
+        document.getElementById('status-text').innerText = "⚠️ Gagal membaca Spreadsheet. Pastikan akses Spreadsheet disetting ke 'Siapa saja yang memiliki link'.";
       }
     }
 
-    function useFallbackQuestions() {
-      questions = [
-        { pertanyaan: "Berapa hasil dari 10 + 15?", a: "20", b: "25", c: "30", d: "35", jawaban: "B" },
-        { pertanyaan: "Ibu kota negara Indonesia?", a: "Surabaya", b: "Medan", c: "Jakarta / IKN", d: "Bandung", jawaban: "C" },
-        { pertanyaan: "Warna bendera negara Indonesia?", a: "Merah Putih", b: "Putih Merah", c: "Merah Kuning", d: "Biru Putih", jawaban: "A" }
-      ];
-      moveStep = 80 / questions.length;
-      displayQuestion();
+    function setupQuizUI() {
+      document.getElementById('game-content').innerHTML = `
+        <div class="question" id="question-text">Menyiapkan balapan...</div>
+        <div class="options" id="options-container">
+          <button class="btn-opt" onclick="checkAnswer(0)">A. Pilihan 1</button>
+          <button class="btn-opt" onclick="checkAnswer(1)">B. Pilihan 2</button>
+          <button class="btn-opt" onclick="checkAnswer(2)">C. Pilihan 3</button>
+          <button class="btn-opt" onclick="checkAnswer(3)">D. Pilihan 4</button>
+        </div>
+      `;
     }
 
     function displayQuestion() {
@@ -429,19 +351,16 @@
 
       document.querySelectorAll('.btn-opt').forEach(btn => btn.disabled = true);
 
-      // Pergerakan Player 1 (Kamu)
       if (selectedKey === currentQ.jawaban) {
         playerPositions[0] += moveStep;
       }
 
-      // Pergerakan Player 2 s/d Player 6 secara dinamis
       for (let i = 1; i <= 5; i++) {
         if (Math.random() < 0.65) {
           playerPositions[i] += moveStep * (0.8 + Math.random() * 0.4);
         }
       }
 
-      // Update Tampilan Mobil di Track
       for (let i = 0; i < 6; i++) {
         document.getElementById(`car-${i}`).style.left = `${playerPositions[i]}%`;
       }
