@@ -44,6 +44,7 @@
       text-align: center;
     }
 
+    /* Track Balap */
     .track-container {
       background: rgba(30, 15, 45, 0.9);
       border: 2px solid #c084fc;
@@ -93,6 +94,7 @@
       z-index: 1;
     }
 
+    /* Box Kuis & Menu */
     .quiz-box {
       background: rgba(45, 27, 61, 0.9);
       border: 1px solid rgba(216, 180, 254, 0.3);
@@ -147,6 +149,52 @@
       cursor: not-allowed;
     }
 
+    /* Styling Menu Input */
+    .start-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .input-sheet {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #c084fc;
+      background: rgba(20, 10, 30, 0.8);
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      text-align: center;
+    }
+
+    .input-sheet::placeholder {
+      color: #a855f7;
+    }
+
+    .btn-play {
+      background: linear-gradient(135deg, #a855f7, #7e22ce);
+      color: #fff;
+      border: none;
+      padding: 16px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 5px 20px rgba(168, 85, 247, 0.4);
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-play:hover {
+      transform: scale(1.02);
+      background: linear-gradient(135deg, #c084fc, #9333ea);
+    }
+
     .info-bar {
       margin-top: 15px;
       font-size: 0.9rem;
@@ -165,7 +213,7 @@
 
   <div class="game-screen">
     <h1>🏁 BALAP KUIS TRIVIA 🏎️</h1>
-    <p id="status-text">Memuat Soal dari Spreadsheet...</p>
+    <p id="status-text">Masukkan Link Spreadsheet untuk memulai balapan!</p>
 
     <!-- Track Balap 6 Pemain -->
     <div class="track-container">
@@ -174,22 +222,21 @@
       <div class="lane"><span class="lane-label">P2</span><div class="car" id="car-1">🚗 Player 2</div></div>
       <div class="lane"><span class="lane-label">P3</span><div class="car" id="car-2">🚙 Player 3</div></div>
       <div class="lane"><span class="lane-label">P4</span><div class="car" id="car-3">🏎️ Player 4</div></div>
-      <div class="lane"><span class="lane-label">P5</span><div class="car" id="car-4">🛻 Player 5</div></div>
+      <div class="lane"><span class="lane-label">P5</span><div class="car" id="car-5">🛻 Player 5</div></div>
       <div class="lane"><span class="lane-label">P6</span><div class="car" id="car-5">🏎️ Player 6</div></div>
     </div>
 
-    <!-- Box Kuis -->
+    <!-- Box Kuis & Menu Utama -->
     <div class="quiz-box">
-      <div class="question" id="question-text">Menyiapkan balapan...</div>
-      <div class="options" id="options-container">
-        <button class="btn-opt" onclick="checkAnswer(0)">A. Pilihan 1</button>
-        <button class="btn-opt" onclick="checkAnswer(1)">B. Pilihan 2</button>
-        <button class="btn-opt" onclick="checkAnswer(2)">C. Pilihan 3</button>
-        <button class="btn-opt" onclick="checkAnswer(3)">D. Pilihan 4</button>
+      <div id="game-content">
+        <div class="start-menu">
+          <input type="text" id="sheet-url-input" class="input-sheet" placeholder="Tempel Link Google Spreadsheet di sini..." />
+          <button class="btn-play" onclick="startRace()">🚀 AYO BERMAIN 🚀</button>
+        </div>
       </div>
     </div>
 
-    <div class="info-bar" id="progress-info">Soal Terjawab: 0 / 0</div>
+    <div class="info-bar" id="progress-info">Siap Bertanding!</div>
   </div>
 
   <script>
@@ -198,15 +245,11 @@
     let playerPositions = [0, 0, 0, 0, 0, 0];
     let moveStep = 0;
 
-    // Ambil ID / Link Spreadsheet murni dari parameter URL
-    function getSheetIdFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const param = urlParams.get('id') || urlParams.get('sheet');
-      
-      if (!param) return null;
-
-      const match = param.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      return match ? match[1] : param.trim();
+    // Ekstrak ID Spreadsheet dari string input atau URL
+    function extractSheetId(inputStr) {
+      if (!inputStr) return null;
+      const match = inputStr.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      return match ? match[1] : inputStr.trim();
     }
 
     function parseCSV(text) {
@@ -233,14 +276,19 @@
       return r;
     }
 
-    async function loadQuestions() {
-      const sheetId = getSheetIdFromURL();
+    async function startRace() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlId = urlParams.get('id') || urlParams.get('sheet');
+      const inputVal = document.getElementById('sheet-url-input') ? document.getElementById('sheet-url-input').value : '';
+      
+      const sheetId = extractSheetId(inputVal) || extractSheetId(urlId);
 
       if (!sheetId) {
-        document.getElementById('status-text').innerText = "⚠️ Link Spreadsheet belum dimasukkan pada URL!";
-        document.getElementById('question-text').innerText = "Silakan tambahkan '?id=LINK_SPREADSHEET' di akhir link GitHub Pages kamu.";
+        alert("Silakan masukkan link Google Spreadsheet terlebih dahulu!");
         return;
       }
+
+      document.getElementById('status-text').innerText = "Memuat Soal dari Spreadsheet...";
 
       const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 
@@ -269,13 +317,26 @@
         if (questions.length === 0) throw new Error("Spreadsheet Kosong");
 
         moveStep = 80 / questions.length;
-        document.getElementById('status-text').innerText = `⚡ Berhasil Memuat ${questions.length} Soal dari Spreadsheet!`;
+        document.getElementById('status-text').innerText = `⚡ Memuat ${questions.length} Soal! Selamat Balapan!`;
+        
+        setupQuizUI();
         displayQuestion();
 
       } catch (err) {
-        document.getElementById('status-text').innerText = "⚠️ Gagal membaca Spreadsheet. Pastikan Spreadsheet disetting 'Siapa saja yang memiliki link dapat melihat'.";
-        document.getElementById('question-text').innerText = "Periksa kembali link/ID Spreadsheet pada URL.";
+        document.getElementById('status-text').innerText = "⚠️ Gagal membaca Spreadsheet. Pastikan akses Spreadsheet diubah ke 'Siapa saja yang memiliki link'.";
       }
+    }
+
+    function setupQuizUI() {
+      document.getElementById('game-content').innerHTML = `
+        <div class="question" id="question-text">Menyiapkan balapan...</div>
+        <div class="options" id="options-container">
+          <button class="btn-opt" onclick="checkAnswer(0)">A. Pilihan 1</button>
+          <button class="btn-opt" onclick="checkAnswer(1)">B. Pilihan 2</button>
+          <button class="btn-opt" onclick="checkAnswer(2)">C. Pilihan 3</button>
+          <button class="btn-opt" onclick="checkAnswer(3)">D. Pilihan 4</button>
+        </div>
+      `;
     }
 
     function displayQuestion() {
@@ -346,7 +407,13 @@
       `;
     }
 
-    window.onload = loadQuestions;
+    // Otomatis jalankan jika ID disertakan pada URL (?id=...)
+    window.onload = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('id') || urlParams.has('sheet')) {
+        startRace();
+      }
+    };
   </script>
 </body>
 </html>
